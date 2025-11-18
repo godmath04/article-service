@@ -1,20 +1,18 @@
-package com.portalperiodistico.auth_service.domain.entity;
+package com.portalperiodistico.article_service.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.util.Set;
 
-@Getter // <-- CAMBIO
-@Setter // <-- CAMBIO
+@Getter
+@Setter
 @Entity
 @Table(name = "[ROLE]")
 public class Role {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "RoleID")
     private Integer roleId;
 
@@ -26,7 +24,4 @@ public class Role {
 
     @Column(name = "ApprovalWeight", nullable = false, precision = 5, scale = 2)
     private BigDecimal approvalWeight;
-
-    @ManyToMany(mappedBy = "roles")
-    private Set<User> users;
 }

@@ -1,6 +1,5 @@
 package com.portalperiodistico.article_service.domain.entity;
 
-import com.portalperiodistico.auth_service.domain.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -23,7 +23,6 @@ public class Article {
     @Column(name = "[IdArticle]")
     private Long idArticle;
 
-    // ... (title, content, createdAt, updatedAt sin cambios) ...
     @Column(name = "[Title]", nullable = false, length = 255)
     private String title;
 
@@ -38,12 +37,13 @@ public class Article {
     @Column(name = "[UpdatedAt]")
     private LocalDateTime updatedAt;
 
-    // --- Relación con User
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "[IdUser]", referencedColumnName = "UserID", nullable = false)
-    private User author;
+    @Column(name = "[AuthorID]", nullable = false)
+    private Integer authorId;
 
-    // --- Relación con ArticleStatus (Sin cambios) ---
+    @Column(name = "[CurrentApprovalPercentage]", precision = 5, scale = 2)
+    private BigDecimal currentApprovalPercentage = BigDecimal.ZERO;
+
+    // Relacion con ArticleStatus
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "[IdArticleStatus]", referencedColumnName = "[IdArticleStatus]", nullable = false)
     private ArticleStatus articleStatus;

@@ -1,6 +1,6 @@
-package com.portalperiodistico.auth_service.domain.repository;
+package com.portalperiodistico.article_service.domain.repository;
 
-import com.portalperiodistico.auth_service.domain.entity.Role;
+import com.portalperiodistico.article_service.domain.entity.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

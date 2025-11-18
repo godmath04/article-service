@@ -8,6 +8,6 @@ import java.util.List;
 
 @Repository
 public interface ArticleRepository extends JpaRepository<Article, Long> {
-    List<Article> findAllByAuthor_UserId(Integer idUser);
+    List<Article> findAllByAuthorId(Integer authorId);
     List<Article> findAllByArticleStatus_StatusName(String statusName);
 }
