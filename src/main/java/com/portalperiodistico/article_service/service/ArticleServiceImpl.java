@@ -3,6 +3,7 @@ package com.portalperiodistico.article_service.service;
 import com.portalperiodistico.article_service.domain.dto.ArticleCreateRequest;
 import com.portalperiodistico.article_service.domain.dto.ArticleDto;
 import com.portalperiodistico.article_service.domain.dto.ArticleStatusDto;
+import com.portalperiodistico.article_service.domain.dto.ArticleUpdateRequest;
 import com.portalperiodistico.article_service.domain.dto.AuthorDto;
 import com.portalperiodistico.article_service.domain.entity.Article;
 import com.portalperiodistico.article_service.domain.entity.ArticleStatus;
@@ -24,6 +25,8 @@ public class ArticleServiceImpl implements ArticleService {
 
     private static final String STATUS_DRAFT = "Borrador";
     private static final String STATUS_PUBLISHED = "Publicado";
+    private static final String STATUS_IN_REVIEW = "En revision";
+    private static final String STATUS_REJECTED = "Observado";
 
     @Override
     @Transactional
@@ -47,6 +50,67 @@ public class ArticleServiceImpl implements ArticleService {
         // 4. Convertir a DTO y retornar
         return mapToArticleDto(savedArticle);
     }
+    @Override
+    @Transactional
+    public ArticleDto updateArticle(Long articleId, ArticleUpdateRequest updateRequest, Integer authenticatedUserId) {
+
+        // 1. Buscar el articulo
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new RuntimeException("Articulo no encontrado con ID: " + articleId));
+
+        // 2. Verificar que el usuario sea el autor
+        if (!article.getAuthorId().equals(authenticatedUserId)) {
+            throw new RuntimeException("No tienes permiso para editar este articulo. Solo el autor puede editarlo.");
+        }
+
+        // 3. Verificar que el articulo este en estado editable
+        String currentStatus = article.getArticleStatus().getStatusName();
+        if (!STATUS_DRAFT.equals(currentStatus) && !STATUS_REJECTED.equals(currentStatus)) {
+            throw new RuntimeException("Solo se pueden editar articulos en estado 'Borrador' u 'Observado'. Estado actual: " + currentStatus);
+        }
+
+        // 4. Actualizar los campos
+        article.setTitle(updateRequest.getTitle());
+        article.setContent(updateRequest.getContent());
+
+        // 5. Si el articulo estaba Observado, al editarlo vuelve a Borrador y resetear porcentaje
+        if (STATUS_REJECTED.equals(currentStatus)) {
+            ArticleStatus draftStatus = articleStatusRepository.findByStatusName(STATUS_DRAFT)
+                    .orElseThrow(() -> new RuntimeException("Estado 'Borrador' no encontrado"));
+            article.setArticleStatus(draftStatus);
+            article.setCurrentApprovalPercentage(BigDecimal.ZERO);
+        }
+
+        // 6. Guardar cambios
+        Article updatedArticle = articleRepository.save(article);
+
+        // 7. Retornar DTO
+        return mapToArticleDto(updatedArticle);
+    }
+    @Override
+    @Transactional
+    public void deleteArticle(Long articleId, Integer authenticatedUserId) {
+
+        // 1. Buscar el articulo
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new RuntimeException("Articulo no encontrado con ID: " + articleId));
+
+        // 2. Verificar que el usuario sea el autor
+        if (!article.getAuthorId().equals(authenticatedUserId)) {
+            throw new RuntimeException("No tienes permiso para eliminar este articulo. Solo el autor puede eliminarlo.");
+        }
+
+        // 3. Verificar que el articulo este en estado eliminable
+        String currentStatus = article.getArticleStatus().getStatusName();
+        if (!STATUS_DRAFT.equals(currentStatus) && !STATUS_REJECTED.equals(currentStatus)) {
+            throw new RuntimeException("Solo se pueden eliminar articulos en estado 'Borrador' u 'Observado'. Estado actual: " + currentStatus);
+        }
+
+        // 4. Eliminar el articulo
+        articleRepository.delete(article);
+    }
+
+
 
     @Override
     @Transactional(readOnly = true)

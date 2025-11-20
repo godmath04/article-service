@@ -2,6 +2,7 @@ package com.portalperiodistico.article_service.service;
 
 import com.portalperiodistico.article_service.domain.dto.ArticleCreateRequest;
 import com.portalperiodistico.article_service.domain.dto.ArticleDto;
+import com.portalperiodistico.article_service.domain.dto.ArticleUpdateRequest;
 
 import java.util.List;
 
@@ -15,6 +16,18 @@ public interface ArticleService {
      * @return El DTO del artículo creado.
      */
     ArticleDto createDraftArticle(ArticleCreateRequest createRequest, Integer authenticatedUserId);
+
+    /**
+     * Actualiza un articulo existente.
+     * Solo se pueden editar articulos en estado "Borrador" u "Observado".
+     */
+    ArticleDto updateArticle(Long articleId, ArticleUpdateRequest updateRequest, Integer authenticatedUserId);
+    /**
+     * Elimina un articulo.
+     * Solo se pueden eliminar articulos en estado "Borrador" u "Observado".
+     */
+    void deleteArticle(Long articleId, Integer authenticatedUserId);
+
 
     /**
      * Obtiene todos los artículos públicos (estado "Publicado").
@@ -31,8 +44,4 @@ public interface ArticleService {
      */
     List<ArticleDto> getArticlesByAuthor(Integer authorId);
 
-    // (Aún no implementaremos la actualización (PUT), pero así se vería)
-    /*
-    ArticleDto updateArticle(Integer articleId, ArticleUpdateRequest updateRequest, Long authenticatedUserId);
-    */
 }

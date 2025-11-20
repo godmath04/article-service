@@ -2,6 +2,7 @@ package com.portalperiodistico.article_service.controller;
 
 import com.portalperiodistico.article_service.domain.dto.ArticleCreateRequest;
 import com.portalperiodistico.article_service.domain.dto.ArticleDto;
+import com.portalperiodistico.article_service.domain.dto.ArticleUpdateRequest;
 import com.portalperiodistico.article_service.security.UserPrincipal;
 import com.portalperiodistico.article_service.service.ArticleService;
 import jakarta.validation.Valid;
@@ -30,10 +31,6 @@ public class ArticleController {
             @Valid @RequestBody ArticleCreateRequest createRequest,
             @AuthenticationPrincipal UserPrincipal authenticatedUser) {
 
-        System.out.println("=== DEBUG POST ARTICLE ===");
-        System.out.println("authenticatedUser: " + authenticatedUser);
-        System.out.println("userId: " + (authenticatedUser != null ? authenticatedUser.getUserId() : "null"));
-
         if (authenticatedUser == null) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
@@ -44,6 +41,55 @@ public class ArticleController {
         );
 
         return new ResponseEntity<>(createdArticle, HttpStatus.CREATED);
+    }
+
+    /**
+     * Actualizar un articulo existente
+     * PUT /api/v1/articles/{id}
+     * Requiere autenticacion
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateArticle(
+            @PathVariable Long id,
+            @Valid @RequestBody ArticleUpdateRequest updateRequest,
+            @AuthenticationPrincipal UserPrincipal authenticatedUser) {
+
+        if (authenticatedUser == null) {
+            return new ResponseEntity<>("Usuario no autenticado", HttpStatus.UNAUTHORIZED);
+        }
+
+        try {
+            ArticleDto updatedArticle = articleService.updateArticle(
+                    id,
+                    updateRequest,
+                    authenticatedUser.getUserId()
+            );
+            return ResponseEntity.ok(updatedArticle);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    /**
+     * Eliminar un articulo
+     * DELETE /api/v1/articles/{id}
+     * Requiere autenticacion
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteArticle(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal authenticatedUser) {
+
+        if (authenticatedUser == null) {
+            return new ResponseEntity<>("Usuario no autenticado", HttpStatus.UNAUTHORIZED);
+        }
+
+        try {
+            articleService.deleteArticle(id, authenticatedUser.getUserId());
+            return ResponseEntity.ok("Articulo eliminado exitosamente");
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
 
     /**
