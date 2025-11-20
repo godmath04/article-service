@@ -131,6 +131,47 @@ public class ArticleServiceImpl implements ArticleService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public ArticleDto getArticleById(Long articleId) {
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new RuntimeException("Artículo no encontrado con ID: " + articleId));
+
+        return mapToArticleDto(article);
+    }
+
+    @Override
+    @Transactional
+    public ArticleDto sendArticleToReview(Long articleId, Integer authenticatedUserId) {
+
+        // 1. Buscar el artículo
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new RuntimeException("Artículo no encontrado con ID: " + articleId));
+
+        // 2. Verificar que el usuario sea el autor
+        if (!article.getAuthorId().equals(authenticatedUserId)) {
+            throw new RuntimeException("No tienes permiso para enviar este artículo a revisión. Solo el autor puede hacerlo.");
+        }
+
+        // 3. Verificar que el artículo esté en estado "Borrador"
+        String currentStatus = article.getArticleStatus().getStatusName();
+        if (!STATUS_DRAFT.equals(currentStatus)) {
+            throw new RuntimeException("Solo se pueden enviar a revisión artículos en estado 'Borrador'. Estado actual: " + currentStatus);
+        }
+
+        // 4. Cambiar estado a "En revision"
+        ArticleStatus inReviewStatus = articleStatusRepository.findByStatusName(STATUS_IN_REVIEW)
+                .orElseThrow(() -> new RuntimeException("Estado 'En revision' no encontrado"));
+
+        article.setArticleStatus(inReviewStatus);
+
+        // 5. Guardar cambios
+        Article updatedArticle = articleRepository.save(article);
+
+        // 6. Retornar DTO
+        return mapToArticleDto(updatedArticle);
+    }
+
     // --- MAPPERS PRIVADOS ---
 
     private ArticleDto mapToArticleDto(Article article) {

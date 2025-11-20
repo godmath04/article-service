@@ -44,4 +44,23 @@ public interface ArticleService {
      */
     List<ArticleDto> getArticlesByAuthor(Integer authorId);
 
+    /**
+     * Obtiene un artículo por su ID.
+     *
+     * @param articleId El ID del artículo.
+     * @return El DTO del artículo encontrado.
+     * @throws RuntimeException si el artículo no existe.
+     */
+    ArticleDto getArticleById(Long articleId);
+
+    /**
+     * Envía un artículo a revisión.
+     * Solo se pueden enviar artículos en estado "Borrador".
+     *
+     * @param articleId El ID del artículo.
+     * @param authenticatedUserId El ID del usuario autenticado (debe ser el autor).
+     * @return El DTO del artículo actualizado.
+     */
+    ArticleDto sendArticleToReview(Long articleId, Integer authenticatedUserId);
+
 }
